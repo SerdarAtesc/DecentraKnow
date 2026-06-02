@@ -1,0 +1,26 @@
+---
+description: Use external/stellar-ai-guide as the primary reference for all Stellar and Soroban implementations
+alwaysApply: true
+---
+
+# Stellar / Soroban Reference
+
+Use `external/stellar-ai-guide/` as the **primary reference** for all Stellar and Soroban related implementations in this project.
+
+## Reference structure
+
+| File | Purpose |
+|------|---------|
+| `Starter_Prompts.md` | Protocol context, wallet-vs-dApp distinction, prompt templates |
+| `Free_AI_Setup.md` | Free AI tooling setup (FreeLLMAPI, Freebuff, OpenRouter, Groq, Ollama) |
+| `Claude_Code_Guide.md` | Claude Code commands, parallel agents, browser automation |
+| `Recommended_AI_Tools.md` | Curated Stellar / AI tool ecosystem map |
+| `countries/mx/` | Mexico-specific rails (SPEI, CETES, AlfredPay, BlindPay, Etherfuse) |
+| `countries/br/` | Brazil-specific rails (PIX, TESOURO, BRZ, Transfero) |
+
+## Rules
+
+- Before implementing any Stellar/Soroban feature, consult the relevant guide files in `external/stellar-ai-guide/`.
+- Use `Starter_Prompts.md` for protocol context and correct terminology.
+- Follow patterns and best practices described in the guide over generic knowledge.
+- For country-specific anchor/rail integrations, reference the appropriate `countries/<code>/` folder.
