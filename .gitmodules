@@ -1,0 +1,3 @@
+[submodule "external/stellar-ai-guide"]
+	path = external/stellar-ai-guide
+	url = https://github.com/kaankacar/stellar-ai-guide
