@@ -244,5 +244,67 @@ class BlockchainService:
             print(f"[Blockchain] get_platform_bps failed: {e}")
             return 3000
 
+    def has_usdc_trustline(self, to_address: str) -> bool:
+        """True if the address is a funded G-account holding a USDC trustline for our issuer.
+        Used to compute payout previews without submitting a doomed transaction."""
+        if not to_address.startswith("G"):
+            return False
+        try:
+            from stellar_sdk import Server
+
+            horizon = Server(settings.horizon_url)
+            acc = horizon.accounts().account_id(to_address).call()
+            return any(
+                b.get("asset_code") == "USDC" and b.get("asset_issuer") == settings.usdc_issuer
+                for b in acc["balances"]
+            )
+        except Exception:
+            return False
+
+    def send_usdc(self, to_address: str, amount_stroops: int) -> str | None:
+        """Pay USDC from the platform account (admin) to a content owner — the per-creator
+        payout on the x402 agent rail. Uses a classic Horizon payment. Returns the tx hash,
+        or None if it can't be delivered (e.g. the owner has no USDC trustline, or is a
+        contract address). Trustline failures are expected and handled by the caller."""
+        if amount_stroops <= 0 or not to_address.startswith("G"):
+            return None
+        try:
+            from stellar_sdk import Server, Asset, TransactionBuilder
+
+            horizon = Server(settings.horizon_url)
+            usdc = Asset("USDC", settings.usdc_issuer)
+
+            # Pre-check the destination's USDC trustline so we never submit a doomed
+            # (op_no_trust) transaction that wastes a fee and clutters history.
+            try:
+                acc = horizon.accounts().account_id(to_address).call()
+                has_trustline = any(
+                    b.get("asset_code") == "USDC" and b.get("asset_issuer") == settings.usdc_issuer
+                    for b in acc["balances"]
+                )
+            except Exception:
+                has_trustline = False
+            if not has_trustline:
+                print(f"[Blockchain] send_usdc: {to_address[:8]}… has no USDC trustline; skipping")
+                return None
+
+            amount = f"{amount_stroops / 10_000_000:.7f}"
+            source = horizon.load_account(self.keypair.public_key)
+            tx = (
+                TransactionBuilder(
+                    source_account=source,
+                    network_passphrase=self.network_passphrase,
+                    base_fee=200,
+                )
+                .append_payment_op(destination=to_address, asset=usdc, amount=amount)
+                .set_timeout(60)
+                .build()
+            )
+            tx.sign(self.keypair)
+            return horizon.submit_transaction(tx)["hash"]
+        except Exception as e:
+            print(f"[Blockchain] send_usdc to {to_address[:8]}… failed (likely no trustline): {e}")
+            return None
+
 
 blockchain_service = BlockchainService()

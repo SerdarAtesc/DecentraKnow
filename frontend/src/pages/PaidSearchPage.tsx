@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Search, Loader2, Coins, CheckCircle2, Trophy, Zap, Sparkles } from 'lucide-react'
 import { useWallet } from '../hooks/useWallet'
 import { api } from '../services/api'
-import { toXlm } from '../config'
+import { toXlm, shortKey, STELLAR_EXPERT_TX } from '../config'
 
 interface PaidResult {
   record_id: number
@@ -33,7 +33,7 @@ interface PaidSearchData {
   message: string
 }
 
-const short = (pk: string) => (pk ? `${pk.slice(0, 6)}…${pk.slice(-4)}` : '—')
+const short = shortKey
 
 function PaidSearchPage() {
   const { connected, publicKey, connect } = useWallet()
@@ -146,7 +146,7 @@ function PaidSearchPage() {
             {data.payment.tx_hash && (
               <a
                 className="text-xs text-stellar-400 hover:underline"
-                href={`https://stellar.expert/explorer/testnet/tx/${data.payment.tx_hash}`}
+                href={`${STELLAR_EXPERT_TX}/${data.payment.tx_hash}`}
                 target="_blank"
                 rel="noreferrer"
               >

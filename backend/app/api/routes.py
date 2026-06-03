@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
 from datetime import datetime, timezone
+import asyncio
 import numpy as np
 from sklearn.decomposition import PCA
 
@@ -27,6 +28,7 @@ from app.models.schemas import (
     UploadPrepareResponse,
     UploadFinalizeRequest,
     UploadFinalizeResponse,
+    X402DistributeRequest,
 )
 from app.services.embedding_service import (
     generate_embedding,
@@ -339,40 +341,37 @@ async def search_knowledge(request: SearchRequest):
     )
 
 
-@router.post("/search/paid", response_model=PaidSearchResponse)
-async def paid_onchain_search(request: PaidSearchRequest):
-    """Paid, blockchain-native search.
+def owner_share(amount: int, owner_count: int) -> int:
+    """Per-owner share of a paid search amount (stroops) after the platform cut. Integer
+    division — the remainder stays with the platform. Shared by the XLM rail (pay_search) and
+    the USDC agent rail (x402 distribute) so both split fees with the same on-chain bps."""
+    if owner_count <= 0:
+        return 0
+    platform_bps = blockchain_service.get_platform_bps()
+    owner_pool = amount - (amount * platform_bps // 10_000)
+    return owner_pool // owner_count
 
-    1. Embed the query and compute its SimHash.
-    2. Rank candidates ON-CHAIN by Hamming distance (read-only simulate -> free).
-    3. Charge the payer and split the fee among the result owners + platform.
+
+async def run_search(query: str, top_k: int) -> dict:
+    """Shared search core (no payment, no synthesis): embed -> on-chain Hamming rank
+    -> off-chain cosine re-rank. Returns results + result_ids + id_map + relevance.
+
+    Used by both the XLM human rail (/search/paid) and the USDC x402 agent rail
+    (/x402/run), so ranking/relevance behavior is identical across both.
     """
-    embedding = await generate_embedding(request.query)
+    embedding = await generate_embedding(query)
     query_sim_hash = simhash_hex(embedding)
 
-    hits = blockchain_service.onchain_search(query_sim_hash, request.top_k)
+    hits = blockchain_service.onchain_search(query_sim_hash, top_k)
     if not hits:
-        return PaidSearchResponse(
-            results=[],
-            query=request.query,
-            payment=PaymentReceipt(charged=False, price=0, platform_cut=0, owner_earnings=[]),
-            message="No matching records on-chain — nothing charged.",
-        )
+        return {"results": [], "result_ids": [], "id_map": {}, "relevant": False,
+                "message": "No matching records on-chain."}
 
-    # Relevance gate: on-chain ranking is free (simulate), so we check confidence
-    # BEFORE charging. If even the closest result is too far, don't ground a RAG
-    # answer on irrelevant sources and don't charge.
     best_distance = min(h["distance"] for h in hits)
     if best_distance > settings.simhash_distance_threshold:
-        return PaidSearchResponse(
-            results=[],
-            query=request.query,
-            payment=PaymentReceipt(charged=False, price=0, platform_cut=0, owner_earnings=[]),
-            message=(
-                f"No confident match (closest Hamming distance {best_distance} > "
-                f"threshold {settings.simhash_distance_threshold}). Nothing charged."
-            ),
-        )
+        return {"results": [], "result_ids": [], "id_map": {}, "relevant": False,
+                "message": (f"No confident match (closest Hamming distance {best_distance} > "
+                            f"threshold {settings.simhash_distance_threshold}).")}
 
     # Map on-chain ids -> stored vector + payload.
     id_map = {
@@ -381,11 +380,9 @@ async def paid_onchain_search(request: PaidSearchRequest):
         if v["payload"].get("onchain_id") is not None
     }
 
-    # Off-chain re-rank: 256-bit Hamming order is coarse, so a barely-relevant
-    # neighbor can sit only a few bits behind a real match. We re-score candidates by
-    # TRUE cosine similarity and keep only those that clear both an absolute floor and
-    # a relative margin from the best match — so only genuinely relevant owners get
-    # paid. Records registered on-chain but not indexed here are skipped entirely.
+    # Off-chain re-rank: 256-bit Hamming order is coarse, so a barely-relevant neighbor
+    # can sit only a few bits behind a real match. Re-score by TRUE cosine and keep only
+    # those clearing both an absolute floor and a relative margin from the best match.
     scored = []
     for hit in hits:
         entry = id_map.get(hit["id"])
@@ -418,81 +415,170 @@ async def paid_onchain_search(request: PaidSearchRequest):
         )
 
     if not result_ids:
-        return PaidSearchResponse(
-            results=[],
-            query=request.query,
-            payment=PaymentReceipt(charged=False, price=0, platform_cut=0, owner_earnings=[]),
-            message="No relevant match after re-ranking the on-chain candidates. Nothing charged.",
-        )
+        return {"results": [], "result_ids": [], "id_map": id_map, "relevant": False,
+                "message": "No relevant match after re-ranking the on-chain candidates."}
 
-    # Payment gate: deliver NOTHING (no sources, no RAG answer) unless the search is
-    # paid. The on-chain ranking above was free (simulate), but results are the product.
-    price = blockchain_service.get_search_price()
-    credits = blockchain_service.get_credits(request.payer)
-    if credits < price:
-        return PaidSearchResponse(
-            results=[],
-            query=request.query,
-            answer=None,
-            payment=PaymentReceipt(charged=False, price=0, platform_cut=0, owner_earnings=[]),
-            message=(
-                f"Insufficient credit: you have {credits} stroops, a search costs {price}. "
-                f"Add funds in Wallet & Earnings."
-            ),
-        )
+    return {"results": results, "result_ids": result_ids, "id_map": id_map,
+            "relevant": True, "message": "ok"}
 
-    tx_hash = await blockchain_service.pay_search(request.payer, result_ids)
-    if not tx_hash:
-        return PaidSearchResponse(
-            results=[],
-            query=request.query,
-            answer=None,
-            payment=PaymentReceipt(charged=False, price=0, platform_cut=0, owner_earnings=[]),
-            message="Payment could not be settled on-chain. Nothing delivered.",
-        )
 
-    # Paid — now (and only now) split the fee mirror and synthesize the answer.
-    platform_bps = blockchain_service.get_platform_bps()
-    owner_pool = price - (price * platform_bps // 10_000)
-    share = owner_pool // len(result_ids)
-
-    earnings: dict[str, int] = {}
-    for r in results:
-        if r.owner:
-            earnings[r.owner] = earnings.get(r.owner, 0) + share
-
-    receipt = PaymentReceipt(
-        charged=True,
-        tx_hash=tx_hash,
-        price=price,
-        platform_cut=price - share * len(result_ids),
-        owner_earnings=[EarningEntry(owner=o, amount=a) for o, a in earnings.items()],
-    )
-
-    # RAG synthesis: combine the on-chain-ranked contents into one grounded answer.
-    answer: str | None = None
+async def synthesize_answer(query, results, id_map, provider=None):
+    """RAG: combine the ranked sources into one grounded answer. Best-effort."""
     context_parts = []
     for i, r in enumerate(results):
         entry = id_map.get(r.record_id) or {}
         content = (entry.get("payload", {}).get("content") if entry else None) or r.content_preview
         if content:
             context_parts.append(f"[Source {i + 1}: {r.title}]\n{content}\n")
-    if context_parts:
-        try:
-            context = "\n---\n".join(context_parts)
-            user_message = f"Context:\n{context}\n\n---\nQuestion: {request.query}"
-            llm = get_provider(request.provider)
-            answer = await llm.generate(SYSTEM_PROMPT, user_message)
-        except Exception as e:
-            print(f"[PaidSearch] RAG synthesis failed (non-blocking): {e}")
+    if not context_parts:
+        return None
+    try:
+        context = "\n---\n".join(context_parts)
+        user_message = f"Context:\n{context}\n\n---\nQuestion: {query}"
+        llm = get_provider(provider)
+        return await llm.generate(SYSTEM_PROMPT, user_message)
+    except Exception as e:
+        print(f"[Search] RAG synthesis failed (non-blocking): {e}")
+        return None
 
+
+@router.post("/search/paid", response_model=PaidSearchResponse)
+async def paid_onchain_search(request: PaidSearchRequest):
+    """Human rail: paid (XLM credit) blockchain-native search with RAG synthesis."""
+    core = await run_search(request.query, request.top_k)
+    if not core["relevant"]:
+        return PaidSearchResponse(
+            results=[], query=request.query,
+            payment=PaymentReceipt(charged=False, price=0, platform_cut=0, owner_earnings=[]),
+            message=core["message"] + " Nothing charged.",
+        )
+
+    results, result_ids, id_map = core["results"], core["result_ids"], core["id_map"]
+
+    # Payment gate: deliver NOTHING unless the search is paid (XLM credits).
+    price = blockchain_service.get_search_price()
+    credits = blockchain_service.get_credits(request.payer)
+    if credits < price:
+        return PaidSearchResponse(
+            results=[], query=request.query, answer=None,
+            payment=PaymentReceipt(charged=False, price=0, platform_cut=0, owner_earnings=[]),
+            message=(f"Insufficient credit: you have {credits} stroops, a search costs {price}. "
+                     f"Add funds in Wallet & Earnings."),
+        )
+
+    tx_hash = await blockchain_service.pay_search(request.payer, result_ids)
+    if not tx_hash:
+        return PaidSearchResponse(
+            results=[], query=request.query, answer=None,
+            payment=PaymentReceipt(charged=False, price=0, platform_cut=0, owner_earnings=[]),
+            message="Payment could not be settled on-chain. Nothing delivered.",
+        )
+
+    share = owner_share(price, len(result_ids))
+    earnings: dict[str, int] = {}
+    for r in results:
+        if r.owner:
+            earnings[r.owner] = earnings.get(r.owner, 0) + share
+    receipt = PaymentReceipt(
+        charged=True, tx_hash=tx_hash, price=price,
+        platform_cut=price - share * len(result_ids),
+        owner_earnings=[EarningEntry(owner=o, amount=a) for o, a in earnings.items()],
+    )
+
+    answer = await synthesize_answer(request.query, results, id_map, request.provider)
     return PaidSearchResponse(
-        results=results,
-        query=request.query,
-        answer=answer,
-        payment=receipt,
+        results=results, query=request.query, answer=answer, payment=receipt,
         message="Search settled on-chain; owners credited.",
     )
+
+
+@router.post("/x402/run")
+async def x402_run(request: PaidSearchRequest, x_internal_secret: str = Header(default="")):
+    """Agent rail (x402): payment-free search core. Payment is enforced UPSTREAM by the
+    x402 Node gateway (USDC, facilitator-settled); this internal endpoint is guarded by
+    a shared secret so it is not a public bypass of the paid search."""
+    if not settings.x402_internal_secret or x_internal_secret != settings.x402_internal_secret:
+        raise HTTPException(status_code=401, detail="Invalid or missing X-Internal-Secret")
+
+    core = await run_search(request.query, request.top_k)
+    if not core["relevant"]:
+        return {"results": [], "query": request.query, "answer": None,
+                "result_ids": [], "owners": [], "message": core["message"]}
+
+    answer = await synthesize_answer(request.query, core["results"], core["id_map"], request.provider)
+    owners: list[str] = []
+    for r in core["results"]:
+        if r.owner and r.owner not in owners:
+            owners.append(r.owner)
+    return {
+        "results": [r.model_dump() for r in core["results"]],
+        "query": request.query,
+        "answer": answer,
+        "result_ids": core["result_ids"],
+        "owners": owners,
+        "message": "Paid via x402; results delivered.",
+    }
+
+
+# Serialize admin USDC payouts so concurrent (parallel-agent) distributes never race on the
+# admin account's sequence number. Background payouts drain through this one lock.
+_payout_lock = asyncio.Lock()
+
+
+async def _run_payouts(owners: list[str], share: int) -> None:
+    """Send `share` USDC to each owner, one at a time (lock-serialized, off the event loop)."""
+    loop = asyncio.get_running_loop()
+    async with _payout_lock:
+        for owner in owners:
+            try:
+                await loop.run_in_executor(None, blockchain_service.send_usdc, owner, share)
+            except Exception as e:  # a single failed payout shouldn't abort the rest
+                print(f"[x402] background payout to {owner[:8]}… failed: {e}")
+
+
+@router.post("/x402/distribute")
+async def x402_distribute(request: X402DistributeRequest, x_internal_secret: str = Header(default="")):
+    """Per-creator USDC payout on the agent rail. After an x402 search settles USDC to the
+    platform, split the owner pool among the result owners and send each their share in USDC.
+    Owners without a USDC trustline (or contract addresses, or the platform itself) are
+    skipped and their share stays with the platform. Guarded by the shared secret.
+
+    With `background=true` the trustline-aware split is computed and returned immediately while
+    the actual on-chain USDC sends run async (lock-serialized) — so a parallel agent doesn't
+    block on settlement latency. Sync mode (default) waits and returns each payout's tx hash."""
+    if not settings.x402_internal_secret or x_internal_secret != settings.x402_internal_secret:
+        raise HTTPException(status_code=401, detail="Invalid or missing X-Internal-Secret")
+
+    platform = blockchain_service.admin_public_key
+    owners = [o for o in dict.fromkeys(request.owners) if o and o != platform]  # dedupe, drop platform
+    if not owners or request.amount <= 0:
+        return {"distributed": [], "skipped": request.owners, "platform_kept": request.amount, "share": 0}
+
+    share = owner_share(request.amount, len(owners))
+
+    if request.background:
+        # Compute the trustline-aware split now; fire the real USDC sends in the background.
+        payable = [o for o in owners if share > 0 and blockchain_service.has_usdc_trustline(o)]
+        skipped = [o for o in owners if o not in payable]
+        if payable:
+            asyncio.create_task(_run_payouts(payable, share))
+        distributed = [{"owner": o, "amount": share, "tx": None} for o in payable]
+        platform_kept = request.amount - share * len(payable)
+        return {"distributed": distributed, "skipped": skipped, "platform_kept": platform_kept,
+                "share": share, "pending": True}
+
+    distributed, skipped = [], []
+    async with _payout_lock:
+        loop = asyncio.get_running_loop()
+        for owner in owners:
+            tx = await loop.run_in_executor(None, blockchain_service.send_usdc, owner, share) if share > 0 else None
+            if tx:
+                distributed.append({"owner": owner, "amount": share, "tx": tx})
+            else:
+                skipped.append(owner)
+
+    platform_kept = request.amount - sum(d["amount"] for d in distributed)
+    return {"distributed": distributed, "skipped": skipped, "platform_kept": platform_kept, "share": share}
 
 
 @router.get("/account/{public_key}")

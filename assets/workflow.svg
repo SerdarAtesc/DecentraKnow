@@ -1,0 +1,181 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#0f1a2e"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7c8cff"/>
+      <stop offset="1" stop-color="#9d7cff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="7" refY="5" orient="auto">
+      <path d="M0,0 L9,5 L0,10 Z" fill="#7c8cff"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="80" y="78" fill="#e6ebf5" font-size="44" font-weight="700">DecentraKnow — How it works</text>
+  <text x="80" y="116" fill="#93a1bd" font-size="22">On-chain ranking · pay-per-search · creators earn automatically</text>
+
+  <!-- on-chain legend -->
+  <g transform="translate(1230,64)">
+    <rect x="0" y="0" rx="9" ry="9" width="290" height="40" fill="rgba(124,140,255,0.12)" stroke="#7c8cff" stroke-opacity="0.5"/>
+    <circle cx="24" cy="20" r="7" fill="#7c8cff"/>
+    <text x="42" y="27" fill="#c7d0e6" font-size="18" font-weight="600">= runs on-chain (Stellar / Soroban)</text>
+  </g>
+
+  <!-- ===================== PIPELINE ROW ===================== -->
+  <!-- card template: 230w x 168h, y=190 -->
+  <!-- positions x: 60, 318, 576, 834, 1092, 1350  (step 258) -->
+
+  <!-- connector arrows -->
+  <g stroke="#7c8cff" stroke-width="3" marker-end="url(#arrow)" opacity="0.9">
+    <line x1="292" y1="274" x2="314" y2="274"/>
+    <line x1="550" y1="274" x2="572" y2="274"/>
+    <line x1="808" y1="274" x2="830" y2="274"/>
+    <line x1="1066" y1="274" x2="1088" y2="274"/>
+    <line x1="1324" y1="274" x2="1346" y2="274"/>
+  </g>
+
+  <!-- Stage 1: Upload (off-chain) -->
+  <g filter="url(#shadow)">
+    <rect x="60" y="190" rx="16" ry="16" width="230" height="168" fill="#18233a" stroke="#2b3a5c"/>
+  </g>
+  <circle cx="92" cy="222" r="16" fill="url(#accent)"/>
+  <text x="92" y="228" fill="#0b1220" font-size="18" font-weight="800" text-anchor="middle">1</text>
+  <path d="M150 232 l16 -16 l16 16 M166 216 v34 M140 256 h52" stroke="#9d7cff" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <text x="175" y="300" fill="#e6ebf5" font-size="22" font-weight="700" text-anchor="middle">Upload</text>
+  <text x="175" y="330" fill="#93a1bd" font-size="16" text-anchor="middle">Creator adds</text>
+  <text x="175" y="350" fill="#93a1bd" font-size="16" text-anchor="middle">knowledge</text>
+
+  <!-- Stage 2: Fingerprint (on-chain) -->
+  <g filter="url(#shadow)">
+    <rect x="318" y="190" rx="16" ry="16" width="230" height="168" fill="#18233a" stroke="#7c8cff" stroke-opacity="0.7"/>
+  </g>
+  <rect x="330" y="202" rx="7" ry="7" width="64" height="22" fill="rgba(124,140,255,0.18)"/>
+  <circle cx="343" cy="213" r="4" fill="#7c8cff"/>
+  <text x="356" y="219" fill="#c7d0e6" font-size="13" font-weight="700">chain</text>
+  <circle cx="516" cy="222" r="16" fill="url(#accent)"/>
+  <text x="516" y="228" fill="#0b1220" font-size="18" font-weight="800" text-anchor="middle">2</text>
+  <g stroke="#9d7cff" stroke-width="3" stroke-linecap="round"><line x1="402" y1="240" x2="402" y2="258"/><line x1="414" y1="234" x2="414" y2="258"/><line x1="426" y1="240" x2="426" y2="258"/><line x1="438" y1="232" x2="438" y2="258"/><line x1="450" y1="244" x2="450" y2="258"/></g>
+  <text x="433" y="300" fill="#e6ebf5" font-size="22" font-weight="700" text-anchor="middle">Fingerprint</text>
+  <text x="433" y="330" fill="#93a1bd" font-size="16" text-anchor="middle">Embed → 256-bit</text>
+  <text x="433" y="350" fill="#93a1bd" font-size="16" text-anchor="middle">SimHash on-chain</text>
+
+  <!-- Stage 3: Rank (on-chain) -->
+  <g filter="url(#shadow)">
+    <rect x="576" y="190" rx="16" ry="16" width="230" height="168" fill="#18233a" stroke="#7c8cff" stroke-opacity="0.7"/>
+  </g>
+  <rect x="588" y="202" rx="7" ry="7" width="64" height="22" fill="rgba(124,140,255,0.18)"/>
+  <circle cx="601" cy="213" r="4" fill="#7c8cff"/>
+  <text x="614" y="219" fill="#c7d0e6" font-size="13" font-weight="700">chain</text>
+  <circle cx="774" cy="222" r="16" fill="url(#accent)"/>
+  <text x="774" y="228" fill="#0b1220" font-size="18" font-weight="800" text-anchor="middle">3</text>
+  <circle cx="686" cy="244" r="14" fill="none" stroke="#9d7cff" stroke-width="3"/>
+  <line x1="697" y1="255" x2="708" y2="266" stroke="#9d7cff" stroke-width="3" stroke-linecap="round"/>
+  <text x="691" y="300" fill="#e6ebf5" font-size="22" font-weight="700" text-anchor="middle">Rank</text>
+  <text x="691" y="330" fill="#93a1bd" font-size="16" text-anchor="middle">Hamming search</text>
+  <text x="691" y="350" fill="#34d399" font-size="16" font-weight="700" text-anchor="middle">free · 0 gas</text>
+
+  <!-- Stage 4: Relevance (off-chain) -->
+  <g filter="url(#shadow)">
+    <rect x="834" y="190" rx="16" ry="16" width="230" height="168" fill="#18233a" stroke="#2b3a5c"/>
+  </g>
+  <circle cx="1032" cy="222" r="16" fill="url(#accent)"/>
+  <text x="1032" y="228" fill="#0b1220" font-size="18" font-weight="800" text-anchor="middle">4</text>
+  <path d="M928 232 h44 l-17 20 v18 l-10 6 v-24 z" fill="none" stroke="#9d7cff" stroke-width="3" stroke-linejoin="round"/>
+  <text x="949" y="300" fill="#e6ebf5" font-size="22" font-weight="700" text-anchor="middle">Relevance</text>
+  <text x="949" y="330" fill="#93a1bd" font-size="16" text-anchor="middle">Cosine re-rank gate</text>
+  <text x="949" y="350" fill="#93a1bd" font-size="16" text-anchor="middle">off-topic → no charge</text>
+
+  <!-- Stage 5: Pay & split (on-chain) -->
+  <g filter="url(#shadow)">
+    <rect x="1092" y="190" rx="16" ry="16" width="230" height="168" fill="#18233a" stroke="#7c8cff" stroke-opacity="0.7"/>
+  </g>
+  <rect x="1104" y="202" rx="7" ry="7" width="64" height="22" fill="rgba(124,140,255,0.18)"/>
+  <circle cx="1117" cy="213" r="4" fill="#7c8cff"/>
+  <text x="1130" y="219" fill="#c7d0e6" font-size="13" font-weight="700">chain</text>
+  <circle cx="1290" cy="222" r="16" fill="url(#accent)"/>
+  <text x="1290" y="228" fill="#0b1220" font-size="18" font-weight="800" text-anchor="middle">5</text>
+  <circle cx="1198" cy="246" r="13" fill="none" stroke="#fbbf24" stroke-width="3"/>
+  <circle cx="1216" cy="246" r="13" fill="none" stroke="#fbbf24" stroke-width="3"/>
+  <text x="1207" y="300" fill="#e6ebf5" font-size="22" font-weight="700" text-anchor="middle">Pay &amp; Split</text>
+  <text x="1207" y="330" fill="#93a1bd" font-size="16" text-anchor="middle">Fee splits</text>
+  <text x="1207" y="350" fill="#34d399" font-size="16" font-weight="700" text-anchor="middle">70% creators / 30%</text>
+
+  <!-- Stage 6: Answer (off-chain) -->
+  <g filter="url(#shadow)">
+    <rect x="1350" y="190" rx="16" ry="16" width="230" height="168" fill="#18233a" stroke="#2b3a5c"/>
+  </g>
+  <circle cx="1548" cy="222" r="16" fill="url(#accent)"/>
+  <text x="1548" y="228" fill="#0b1220" font-size="18" font-weight="800" text-anchor="middle">6</text>
+  <path d="M1410 234 h44 a6 6 0 0 1 6 6 v20 a6 6 0 0 1 -6 6 h-30 l-14 12 v-12 a6 6 0 0 1 -6 -6 v-20 a6 6 0 0 1 6 -6 z" fill="none" stroke="#9d7cff" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M1432 250 l3 6 l6 1 l-4.5 4 l1 6 l-5.5 -3 l-5.5 3 l1 -6 l-4.5 -4 l6 -1 z" fill="#fbbf24"/>
+  <text x="1465" y="300" fill="#e6ebf5" font-size="22" font-weight="700" text-anchor="middle">Answer</text>
+  <text x="1465" y="330" fill="#93a1bd" font-size="16" text-anchor="middle">Grounded RAG</text>
+  <text x="1465" y="350" fill="#93a1bd" font-size="16" text-anchor="middle">from paid sources</text>
+
+  <!-- ===================== BOTTOM: RAILS + SPLIT ===================== -->
+
+  <!-- Two payment rails box -->
+  <g filter="url(#shadow)">
+    <rect x="60" y="470" rx="18" ry="18" width="740" height="350" fill="#101a30" stroke="#2b3a5c"/>
+  </g>
+  <text x="92" y="525" fill="#e6ebf5" font-size="26" font-weight="700">Two payment rails, one search engine</text>
+  <text x="92" y="556" fill="#93a1bd" font-size="17">The same on-chain ranking core serves both humans and machines.</text>
+
+  <!-- rail 1: human -->
+  <rect x="92" y="588" rx="14" ry="14" width="320" height="190" fill="#16243f" stroke="#33507f"/>
+  <circle cx="140" cy="636" r="22" fill="rgba(124,140,255,0.18)"/>
+  <circle cx="140" cy="628" r="8" fill="#9d7cff"/>
+  <path d="M124 652 a16 14 0 0 1 32 0" fill="#9d7cff"/>
+  <text x="178" y="630" fill="#e6ebf5" font-size="22" font-weight="700">Human</text>
+  <text x="178" y="658" fill="#93a1bd" font-size="16">in the app</text>
+  <rect x="112" y="700" rx="10" ry="10" width="280" height="54" fill="rgba(52,211,153,0.12)" stroke="#34d399" stroke-opacity="0.5"/>
+  <text x="252" y="733" fill="#34d399" font-size="20" font-weight="700" text-anchor="middle">Pays in XLM · prepaid credits</text>
+
+  <!-- rail 2: AI agent -->
+  <rect x="448" y="588" rx="14" ry="14" width="320" height="190" fill="#16243f" stroke="#33507f"/>
+  <rect x="476" y="616" rx="8" ry="8" width="40" height="34" fill="none" stroke="#fbbf24" stroke-width="3"/>
+  <circle cx="487" cy="633" r="3.5" fill="#fbbf24"/><circle cx="505" cy="633" r="3.5" fill="#fbbf24"/>
+  <line x1="496" y1="616" x2="496" y2="606" stroke="#fbbf24" stroke-width="3"/><circle cx="496" cy="603" r="3" fill="#fbbf24"/>
+  <text x="534" y="630" fill="#e6ebf5" font-size="22" font-weight="700">AI agent</text>
+  <text x="534" y="658" fill="#93a1bd" font-size="16">autonomous</text>
+  <rect x="468" y="700" rx="10" ry="10" width="280" height="54" fill="rgba(251,191,36,0.12)" stroke="#fbbf24" stroke-opacity="0.5"/>
+  <text x="608" y="726" fill="#fbbf24" font-size="19" font-weight="700" text-anchor="middle">Pays USDC per query</text>
+  <text x="608" y="746" fill="#fbbf24" font-size="15" text-anchor="middle">via x402 · no account, no API key</text>
+
+  <!-- Fee split box -->
+  <g filter="url(#shadow)">
+    <rect x="836" y="470" rx="18" ry="18" width="704" height="350" fill="#101a30" stroke="#2b3a5c"/>
+  </g>
+  <text x="868" y="525" fill="#e6ebf5" font-size="26" font-weight="700">Every fee splits on-chain</text>
+  <text x="868" y="556" fill="#93a1bd" font-size="17">Provable attribution — creators earn the moment their knowledge answers.</text>
+
+  <!-- split bar -->
+  <rect x="868" y="600" rx="12" ry="12" width="640" height="64" fill="#16243f"/>
+  <rect x="868" y="600" rx="12" ry="12" width="448" height="64" fill="rgba(52,211,153,0.85)"/>
+  <rect x="1316" y="600" width="192" height="64" fill="rgba(124,140,255,0.85)"/>
+  <rect x="1500" y="600" width="8" height="64" rx="4" fill="rgba(124,140,255,0.85)"/>
+  <text x="1092" y="640" fill="#06281d" font-size="24" font-weight="800" text-anchor="middle">70% · Creators who answered</text>
+  <text x="1412" y="640" fill="#0b1220" font-size="22" font-weight="800" text-anchor="middle">30% · Platform</text>
+
+  <!-- chips -->
+  <rect x="868" y="700" rx="10" ry="10" width="300" height="80" fill="#16243f" stroke="#33507f"/>
+  <circle cx="908" cy="740" r="18" fill="rgba(52,211,153,0.16)"/>
+  <path d="M900 740 l6 7 l12 -14" stroke="#34d399" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="938" y="734" fill="#e6ebf5" font-size="18" font-weight="700">Verifiable on-chain</text>
+  <text x="938" y="758" fill="#93a1bd" font-size="15">no black-box payout</text>
+
+  <rect x="1208" y="700" rx="10" ry="10" width="300" height="80" fill="#16243f" stroke="#33507f"/>
+  <circle cx="1248" cy="740" r="18" fill="rgba(251,191,36,0.16)"/>
+  <text x="1248" y="747" fill="#fbbf24" font-size="22" font-weight="800" text-anchor="middle">¢</text>
+  <text x="1278" y="734" fill="#e6ebf5" font-size="18" font-weight="700">Sub-cent fees</text>
+  <text x="1278" y="758" fill="#93a1bd" font-size="15">micropayments viable</text>
+
+</svg>

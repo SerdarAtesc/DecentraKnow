@@ -1,0 +1,22 @@
+{
+  "name": "decentraknow-x402-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "agent": "node agent.mjs"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "^14.0.0",
+    "@x402/core": "^2.8.0",
+    "@x402/express": "^2.8.0",
+    "@x402/stellar": "^2.8.0",
+    "dotenv": "^17.0.0",
+    "express": "^5.0.0",
+    "openai": "^4.104.0"
+  }
+}

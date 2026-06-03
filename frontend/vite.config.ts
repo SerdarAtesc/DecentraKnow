@@ -16,6 +16,12 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
+      // x402 agent gateway (USDC rail)
+      '/gw': {
+        target: 'http://localhost:4021',
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/gw/, ''),
+      },
     },
   },
 })

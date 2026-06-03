@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import UploadPage from './pages/UploadPage'
 import SearchPage from './pages/SearchPage'
 import PaidSearchPage from './pages/PaidSearchPage'
+import AgentPage from './pages/AgentPage'
 import WalletPage from './pages/WalletPage'
 import DashboardPage from './pages/DashboardPage'
 import GraphPage from './pages/GraphPage'
@@ -19,6 +20,7 @@ function App() {
           <Route path="upload" element={<UploadPage />} />
           <Route path="search" element={<SearchPage />} />
           <Route path="paid-search" element={<PaidSearchPage />} />
+          <Route path="agent" element={<AgentPage />} />
           <Route path="wallet" element={<WalletPage />} />
           <Route path="graph" element={<GraphPage />} />
         </Route>

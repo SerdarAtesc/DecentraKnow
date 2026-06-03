@@ -56,6 +56,15 @@ class Settings(BaseSettings):
     # they're all kept.
     rerank_relative_margin: float = 0.18
 
+    # Shared secret the x402 Node gateway must present (X-Internal-Secret header) to
+    # call the payment-free /x402/run endpoint. Payment is enforced by x402 upstream;
+    # this prevents the internal run path from being a public bypass of paid search.
+    x402_internal_secret: str = ""
+    # USDC on Stellar testnet (the asset the x402 agent rail charges in). Used to
+    # distribute per-creator USDC payouts after a settled x402 search.
+    usdc_issuer: str = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    horizon_url: str = "https://horizon-testnet.stellar.org"
+
     cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
     class Config:

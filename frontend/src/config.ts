@@ -26,3 +26,16 @@ export function toXlm(stroops: number | string | bigint): string {
   const frac = (s % BigInt(STROOPS_PER_XLM)).toString().padStart(CONFIG.decimals, '0').replace(/0+$/, '')
   return frac ? `${whole}.${frac}` : `${whole}`
 }
+
+// USDC is also 7-dp on Stellar. Display stroops as a USDC amount.
+export function toUsdc(stroops: number, dp = 4): string {
+  return `${(stroops / STROOPS_PER_XLM).toFixed(dp)} USDC`
+}
+
+// Abbreviate a Stellar public key (G…) for compact display.
+export function shortKey(pk: string): string {
+  return pk ? `${pk.slice(0, 6)}…${pk.slice(-4)}` : '—'
+}
+
+// Base URL for a transaction on the testnet block explorer.
+export const STELLAR_EXPERT_TX = 'https://stellar.expert/explorer/testnet/tx'

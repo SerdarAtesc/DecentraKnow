@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { Brain, Upload, Search, Wallet, Network, Zap, Coins } from 'lucide-react'
+import { Brain, Upload, Search, Wallet, Network, Zap, Coins, Bot } from 'lucide-react'
 import { useWallet } from '../hooks/useWallet'
 
 function Layout() {
@@ -10,6 +10,7 @@ function Layout() {
     { to: '/upload', icon: Upload, label: 'Upload' },
     { to: '/search', icon: Search, label: 'Search' },
     { to: '/paid-search', icon: Zap, label: 'Paid Search' },
+    { to: '/agent', icon: Bot, label: 'Agent API (x402)' },
     { to: '/wallet', icon: Coins, label: 'Wallet & Earnings' },
     { to: '/graph', icon: Network, label: 'Knowledge Graph' },
   ]

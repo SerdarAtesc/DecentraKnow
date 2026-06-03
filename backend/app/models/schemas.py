@@ -37,6 +37,12 @@ class UploadPrepareResponse(BaseModel):
     source_url: str = ""
 
 
+class X402DistributeRequest(BaseModel):
+    owners: list[str]
+    amount: int  # total USDC paid for the search, in stroops (7-dp)
+    background: bool = False  # if true, return the computed split now and send USDC async
+
+
 class UploadFinalizeRequest(BaseModel):
     content_hash: str
     record_id: int
