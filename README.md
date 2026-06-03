@@ -4,6 +4,8 @@
 
 A production-grade system combining AI embeddings, semantic search, RAG (Retrieval Augmented Generation), IPFS decentralized storage, and Stellar blockchain (Soroban smart contracts) to create a verified, AI-native knowledge engine.
 
+**[Pitch Deck](https://docs.google.com/presentation/d/19gnAMIcHRdpz3l80RnGaKWv-1ofP8tD-SZ6cn2BOpm4/edit?slide=id.p1#slide=id.p1)**
+
 ## Architecture
 
 ```
