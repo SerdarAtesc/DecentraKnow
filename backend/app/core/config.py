@@ -35,6 +35,27 @@ class Settings(BaseSettings):
     search_top_k: int = 5
     rag_context_limit: int = 3
 
+    # SimHash / LSH — must match the on-chain contract's expectations and be
+    # identical across every node. Changing the seed invalidates all stored hashes.
+    simhash_seed: int = 1337
+    # On-chain search settlement (paid search). Public key whose signature settles
+    # pay_search is the contract admin; the backend signs with stellar_secret_key.
+    onchain_search_top_k: int = 5
+    # Max acceptable Hamming distance (out of 256) for a result to count as a real
+    # match. If the closest result exceeds this, we treat it as "no confident match":
+    # no RAG synthesis, no charge. Tune per corpus; ~random is 128, good matches < 100.
+    simhash_distance_threshold: int = 110
+    # Off-chain re-rank: after the coarse on-chain Hamming ranking, candidates are
+    # re-scored by true cosine similarity and only those above this threshold count
+    # as relevant (so only relevant owners get paid). OpenAI embeddings: related
+    # pairs are typically > 0.3, unrelated < 0.2.
+    rerank_cosine_threshold: float = 0.28
+    # On top of the absolute floor, drop results that trail the BEST match by more
+    # than this. Adaptive: when one result clearly wins (e.g. "proof of work" ->
+    # Bitcoin), topic-adjacent neighbors are pruned; when several score similarly,
+    # they're all kept.
+    rerank_relative_margin: float = 0.18
+
     cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
     class Config:

@@ -3,7 +3,8 @@ import { WalletContext, useWalletProvider } from './hooks/useWallet'
 import Layout from './components/Layout'
 import UploadPage from './pages/UploadPage'
 import SearchPage from './pages/SearchPage'
-import RAGChatPage from './pages/RAGChatPage'
+import PaidSearchPage from './pages/PaidSearchPage'
+import WalletPage from './pages/WalletPage'
 import DashboardPage from './pages/DashboardPage'
 import GraphPage from './pages/GraphPage'
 
@@ -17,7 +18,8 @@ function App() {
           <Route index element={<DashboardPage />} />
           <Route path="upload" element={<UploadPage />} />
           <Route path="search" element={<SearchPage />} />
-          <Route path="chat" element={<RAGChatPage />} />
+          <Route path="paid-search" element={<PaidSearchPage />} />
+          <Route path="wallet" element={<WalletPage />} />
           <Route path="graph" element={<GraphPage />} />
         </Route>
       </Routes>

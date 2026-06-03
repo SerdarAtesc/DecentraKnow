@@ -40,6 +40,12 @@ export const api = {
   upload: (data: UploadPayload) =>
     request('/upload', { method: 'POST', body: JSON.stringify(data) }),
 
+  uploadPrepare: (data: UploadPayload) =>
+    request('/upload/prepare', { method: 'POST', body: JSON.stringify(data) }),
+
+  uploadFinalize: (data: { content_hash: string; record_id: number; tx_hash?: string }) =>
+    request('/upload/finalize', { method: 'POST', body: JSON.stringify(data) }),
+
   search: (data: SearchPayload) =>
     request('/search', { method: 'POST', body: JSON.stringify(data) }),
 
@@ -62,4 +68,9 @@ export const api = {
     request('/graph/rebuild', { method: 'POST' }),
 
   health: () => request('/health'),
+
+  paidSearch: (data: { query: string; payer: string; top_k?: number }) =>
+    request('/search/paid', { method: 'POST', body: JSON.stringify(data) }),
+
+  account: (publicKey: string) => request(`/account/${publicKey}`),
 }

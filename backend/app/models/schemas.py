@@ -16,10 +16,36 @@ class UploadResponse(BaseModel):
     success: bool
     content_hash: str
     embedding_hash: str
+    sim_hash: Optional[str] = None
     ipfs_cid: str
     blockchain_tx: Optional[str] = None
+    record_id: Optional[int] = None
     title: str
     duplicate: bool = False
+    message: str
+
+
+class UploadPrepareResponse(BaseModel):
+    """Everything the wallet needs to sign the on-chain register, computed off-chain."""
+    duplicate: bool = False
+    message: str
+    content_hash: str = ""
+    embedding_hash: str = ""
+    sim_hash: str = ""
+    ipfs_cid: str = ""
+    title: str = ""
+    source_url: str = ""
+
+
+class UploadFinalizeRequest(BaseModel):
+    content_hash: str
+    record_id: int
+    tx_hash: Optional[str] = None
+
+
+class UploadFinalizeResponse(BaseModel):
+    success: bool
+    record_id: int
     message: str
 
 
@@ -47,6 +73,44 @@ class SearchResponse(BaseModel):
     results: list[SearchResult]
     query: str
     total: int
+
+
+class PaidSearchRequest(BaseModel):
+    query: str
+    payer: str = Field(..., description="Stellar public key paying for the search")
+    top_k: int = Field(default=5, ge=1, le=50)
+    provider: Optional[str] = None
+
+
+class PaidSearchResult(BaseModel):
+    record_id: int
+    distance: int  # on-chain Hamming distance (lower = more similar)
+    content_hash: str
+    title: str
+    content_preview: str
+    owner: str
+    ipfs_cid: str
+
+
+class EarningEntry(BaseModel):
+    owner: str
+    amount: int  # token smallest unit (stroops for XLM)
+
+
+class PaymentReceipt(BaseModel):
+    charged: bool
+    tx_hash: Optional[str] = None
+    price: int
+    platform_cut: int
+    owner_earnings: list[EarningEntry]
+
+
+class PaidSearchResponse(BaseModel):
+    results: list[PaidSearchResult]
+    query: str
+    answer: Optional[str] = None
+    payment: PaymentReceipt
+    message: str
 
 
 class RAGRequest(BaseModel):

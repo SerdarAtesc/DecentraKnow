@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { Brain, Upload, Search, MessageSquare, Wallet, Network } from 'lucide-react'
+import { Brain, Upload, Search, Wallet, Network, Zap, Coins } from 'lucide-react'
 import { useWallet } from '../hooks/useWallet'
 
 function Layout() {
@@ -9,7 +9,8 @@ function Layout() {
     { to: '/', icon: Brain, label: 'Dashboard' },
     { to: '/upload', icon: Upload, label: 'Upload' },
     { to: '/search', icon: Search, label: 'Search' },
-    { to: '/chat', icon: MessageSquare, label: 'RAG Chat' },
+    { to: '/paid-search', icon: Zap, label: 'Paid Search' },
+    { to: '/wallet', icon: Coins, label: 'Wallet & Earnings' },
     { to: '/graph', icon: Network, label: 'Knowledge Graph' },
   ]
 
